@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tra cứu xử lý nước ao nuôi | Thái Hùng Indo</title>
+<style>
+  :root{
+    --blue:#0a4da3;
+    --blue-deep:#062f66;
+    --red:#c8202c;
+    --green:#3f8f2f;
+    --ink:#12203a;
+    --paper:#f6f7f9;
+    --line:#dde2ea;
+    --white:#ffffff;
+    --muted:#5b6678;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{color:inherit;}
+
+  /* ---------- Header ---------- */
+  header{
+    background:var(--white);
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:0;
+    z-index:20;
+  }
+  .header-inner{
+    max-width:1080px;
+    margin:0 auto;
+    padding:16px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .brand{
+    font-weight:800;
+    font-size:15px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--blue-deep);
+  }
+  .brand span{color:var(--red);}
+  .header-tag{
+    font-size:12px;
+    color:var(--muted);
+    display:none;
+  }
+  @media(min-width:640px){ .header-tag{display:block;} }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    max-width:1080px;
+    margin:0 auto;
+    padding:56px 24px 32px;
+  }
+  .hero h1{
+    font-size:clamp(28px,4vw,42px);
+    line-height:1.15;
+    margin:0 0 12px;
+    font-weight:800;
+    letter-spacing:-0.01em;
+  }
+  .hero h1 em{
+    font-style:normal;
+    color:var(--blue);
+    border-bottom:4px solid var(--green);
+  }
+  .hero p{
+    max-width:640px;
+    color:var(--muted);
+    font-size:16px;
+    line-height:1.6;
+    margin:0;
+  }
+
+  /* ---------- Mode Switch ---------- */
+  .switch-wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding:0 24px;
+  }
+  .switch{
+    display:flex;
+    gap:8px;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:6px;
+    max-width:520px;
+  }
+  .switch button{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding:12px 14px;
+    font-size:14px;
+    font-weight:700;
+    color:var(--muted);
+    border-radius:7px;
+    cursor:pointer;
+    transition:.15s ease;
+  }
+  .switch button.active{
+    background:var(--blue);
+    color:var(--white);
+  }
+
+  /* ---------- Section shell ---------- */
+  main{
+    max-width:1080px;
+    margin:0 auto;
+    padding:28px 24px 80px;
+  }
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .section-head .num{
+    font-weight:800;
+    color:var(--red);
+    font-size:13px;
+    letter-spacing:.05em;
+  }
+  .section-head h2{
+    font-size:18px;
+    margin:0;
+    font-weight:700;
+  }
+
+  /* ---------- Condition grid (chọn tình trạng nước) ---------- */
+  .cond-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(210px,1fr));
+    gap:12px;
+    margin-bottom:28px;
+  }
+  .cond-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px;
+    cursor:pointer;
+    text-align:left;
+    transition:.15s ease;
+  }
+  .cond-card:hover{
+    border-color:var(--blue);
+    box-shadow:0 2px 10px rgba(10,77,163,.08);
+  }
+  .cond-card.selected{
+    border-color:var(--blue);
+    background:#eef4fc;
+  }
+  .cond-card .label{
+    font-weight:700;
+    font-size:14.5px;
+    margin-bottom:4px;
+    color:var(--ink);
+  }
+  .cond-card .desc{
+    font-size:12.5px;
+    color:var(--muted);
+    line-height:1.5;
+  }
+
+  /* ---------- Result ---------- */
+  .result-title{
+    font-size:14px;
+    font-weight:700;
+    color:var(--blue-deep);
+    margin:8px 0 14px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+  }
+  .result-empty{
+    color:var(--muted);
+    font-size:14px;
+    padding:20px 0;
+  }
+
+  .prod-list{
+    display:grid;
+    gap:14px;
+  }
+  .prod-card{
+    display:flex;
+    gap:16px;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+    align-items:flex-start;
+  }
+  .prod-card .thumb{
+    width:64px;
+    height:64px;
+    border-radius:8px;
+    flex-shrink:0;
+    background:linear-gradient(135deg,var(--blue),var(--blue-deep));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-weight:800;
+    font-size:12px;
+    text-align:center;
+    padding:4px;
+    line-height:1.2;
+  }
+  .prod-card .body{flex:1;}
+  .prod-card .name{
+    font-weight:700;
+    font-size:15.5px;
+    margin:0 0 3px;
+  }
+  .prod-card .meta{
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+  .prod-card .use{
+    font-size:13px;
+    color:var(--ink);
+    line-height:1.6;
+    margin-bottom:10px;
+  }
+  .prod-card .tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-bottom:10px;
+  }
+  .tag{
+    font-size:11px;
+    font-weight:600;
+    padding:3px 9px;
+    border-radius:20px;
+    background:#eef4fc;
+    color:var(--blue-deep);
+  }
+  .prod-card .link{
+    display:inline-block;
+    font-size:13px;
+    font-weight:700;
+    color:var(--white);
+    background:var(--red);
+    padding:8px 16px;
+    border-radius:7px;
+    text-decoration:none;
+  }
+  .prod-card .link:hover{background:#a3181f;}
+
+  /* ---------- Product select (chọn sản phẩm) ---------- */
+  .prod-select-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(230px,1fr));
+    gap:12px;
+    margin-bottom:28px;
+  }
+  .prod-select-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+    cursor:pointer;
+    text-align:left;
+    display:flex;
+    gap:12px;
+    align-items:center;
+    transition:.15s ease;
+  }
+  .prod-select-card:hover{border-color:var(--green);}
+  .prod-select-card.selected{
+    border-color:var(--green);
+    background:#eef7ec;
+  }
+  .prod-select-card .dot{
+    width:10px;height:10px;border-radius:50%;
+    background:var(--blue);flex-shrink:0;
+  }
+  .prod-select-card .txt .n{font-weight:700;font-size:13.5px;}
+  .prod-select-card .txt .p{font-size:11.5px;color:var(--muted);}
+
+  .cond-result-list{
+    display:grid;
+    gap:10px;
+  }
+  .cond-result-item{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-left:4px solid var(--green);
+    border-radius:8px;
+    padding:14px 16px;
+  }
+  .cond-result-item .t{font-weight:700;font-size:14px;margin-bottom:3px;}
+  .cond-result-item .d{font-size:13px;color:var(--muted);line-height:1.55;}
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:24px;
+    text-align:center;
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  @media(max-width:520px){
+    .prod-card{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">Thái Hùng <span>Indo</span></div>
+    <div class="header-tag">Tra cứu xử lý nước ao nuôi tôm · cá</div>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>Nước ao có vấn đề? <em>Tìm đúng sản phẩm.</em></h1>
+  <p>Chọn tình trạng ao nuôi để xem sản phẩm cần dùng, hoặc chọn sản phẩm để biết công dụng và trường hợp sử dụng.</p>
+</div>
+
+<div class="switch-wrap">
+  <div class="switch">
+    <button id="btn-mode-cond" class="active" onclick="setMode('cond')">Chọn tình trạng nước</button>
+    <button id="btn-mode-prod" onclick="setMode('prod')">Chọn sản phẩm</button>
+  </div>
+</div>
+
+<main>
+
+  <!-- ================= PANEL 1: CHỌN TÌNH TRẠNG NƯỚC ================= -->
+  <section id="panel-cond" class="panel active">
+    <div class="section-head">
+      <span class="num">01</span>
+      <h2>Tình trạng ao nuôi hiện tại</h2>
+    </div>
+
+    <div class="cond-grid" id="cond-grid"></div>
+
+    <div id="cond-result-wrap" style="display:none;">
+      <div class="result-title" id="cond-result-title"></div>
+      <div class="prod-list" id="cond-result-list"></div>
+    </div>
+    <div class="result-empty" id="cond-empty">Chọn một tình trạng ở trên để xem sản phẩm phù hợp.</div>
+  </section>
+
+  <!-- ================= PANEL 2: CHỌN SẢN PHẨM ================= -->
+  <section id="panel-prod" class="panel">
+    <div class="section-head">
+      <span class="num">02</span>
+      <h2>Chọn sản phẩm để xem công dụng</h2>
+    </div>
+
+    <div class="prod-select-grid" id="prod-select-grid"></div>
+
+    <div id="prod-result-wrap" style="display:none;">
+      <div class="result-title" id="prod-result-title"></div>
+      <div class="cond-result-list" id="prod-result-list"></div>
+      <div style="margin-top:16px;">
+        <a href="#" id="prod-result-link" target="_blank" class="link" style="text-decoration:none; display:inline-block; font-size:13px; font-weight:700; color:#fff; background:var(--red); padding:9px 18px; border-radius:7px;">Xem sản phẩm</a>
+      </div>
+    </div>
+    <div class="result-empty" id="prod-empty">Chọn một sản phẩm ở trên để xem tình trạng nước phù hợp và công dụng.</div>
+  </section>
+
+</main>
+
+<footer>Công Ty TNHH Thái Hùng Indo · Thông tin tổng hợp từ bao bì sản phẩm</footer>
+
+<script>
+/* ============ DATA ============ */
+// products: mỗi sp gắn với danh sách condition id mà nó xử lý
+const PRODUCTS = [
+  {
+    id: "yucca-zeo-24h",
+    name: "Yucca Zeo 24h Zeolite",
+    weight: "20kg (bao giấy)",
+    short: "YZ24",
+    use: "Cấp cứu tôm, cá sốc – đen thân – nổi đầu do sốc/thay đổi thời tiết. Hấp thu khí độc NH3, NO2, H2S, ổn định đường ruột, cân bằng pH.",
+    tags: ["Cấp cứu nổi đầu", "Khí độc NH3/H2S", "Đường ruột"],
+    conditions: ["noi-dau", "khi-doc", "duong-ruot", "soc-moi-truong"],
+    link: "#"
+  },
+  {
+    id: "zeo-indo-xanhduong",
+    name: "Zeo Indo – Zeolite 100",
+    weight: "20kg",
+    short: "ZEO",
+    use: "Cấp cứu tôm, cá nổi đầu tức thời, hấp thu khí độc đáy ao, tăng oxy hòa tan trong nước.",
+    tags: ["Cấp cứu nổi đầu", "Thiếu oxy", "Khí độc đáy ao"],
+    conditions: ["noi-dau", "thieu-oxy", "khi-doc"],
+    link: "#"
+  },
+  {
+    id: "zeo-indo-trangxanh",
+    name: "Zeo Indo – Zeolite 100 (bao trắng-xanh lá)",
+    weight: "20kg",
+    short: "ZEO+",
+    use: "Cấp cứu tôm cá nổi đầu, chất lượng cao, xử lý nhanh khi ao thiếu oxy đột ngột.",
+    tags: ["Cấp cứu nổi đầu", "Thiếu oxy"],
+    conditions: ["noi-dau", "thieu-oxy"],
+    link: "#"
+  },
+  {
+    id: "zeolite-thai",
+    name: "Zeolite hạt (nhập khẩu Thái Lan)",
+    weight: "Bao lớn",
+    short: "ZLT",
+    use: "Khử NH3, H2S; tăng oxy hòa tan; ổn định pH; phòng bệnh đường ruột, bệnh vỏ; làm sạch đáy ao.",
+    tags: ["Khí độc NH3/H2S", "Thiếu oxy", "pH không ổn định", "Phòng bệnh"],
+    conditions: ["khi-doc", "thieu-oxy", "ph-khong-on-dinh", "day-ao-o-nhiem"],
+    link: "#"
+  },
+  {
+    id: "khoang-remix-99-zeolite",
+    name: "Khoáng Remix 99 (nền Zeolite)",
+    weight: "5 / 10 / 15kg",
+    short: "KR99",
+    use: "Bổ sung khoáng đa – vi lượng, giúp tôm cứng vỏ nhanh, vỏ xanh, da trơn bóng, gây màu tảo và ổn định màu nước.",
+    tags: ["Thiếu khoáng", "Mềm vỏ", "Gây màu nước"],
+    conditions: ["thieu-khoang", "mem-vo", "mau-nuoc-kem"],
+    link: "#"
+  },
+  {
+    id: "khoang-remix-99-sieu-khoang",
+    name: "Khoáng Remix 99 – Siêu Khoáng",
+    weight: "5 / 10 / 15kg",
+    short: "KR99+",
+    use: "Đặc trị cong thân, đục cơ; kích thích tôm lột xác đồng loạt, cứng vỏ nhanh; tạo màu nước đẹp, sạch.",
+    tags: ["Cong thân đục cơ", "Hỗ trợ lột xác", "Mềm vỏ"],
+    conditions: ["cong-than-duc-co", "lot-xac", "mem-vo"],
+    link: "#"
+  },
+  {
+    id: "sieu-oc-trun-chi",
+    name: "Siêu Ốc – Trùn Chỉ (Lúa-Tôm)",
+    weight: "20kg",
+    short: "SOTC",
+    use: "Cải tạo ao mới/ao nhiễm phèn/kim loại nặng, ổn định pH và độ kiềm, hấp thu khí độc, gây màu nước và thức ăn tự nhiên, diệt rong nhớt.",
+    tags: ["Cải tạo ao", "Nhiễm phèn/kim loại nặng", "Rong nhớt", "Gây màu nước"],
+    conditions: ["cai-tao-ao", "nhiem-phen", "rong-nhot", "mau-nuoc-kem", "ph-khong-on-dinh"],
+    link: "#"
+  },
+  {
+    id: "lua-tom",
+    name: "Lúa – Tôm (chế phẩm sinh học)",
+    weight: "40kg",
+    short: "LT",
+    use: "Cải tạo ao/ruộng nuôi tôm cá từ phân đơi, phân mía, phân chuồng đã xử lý; gây tảo nhanh, tạo màu nước đẹp, vi sinh vật có lợi, phát triển trùn chỉ – ốc gạo; đặc biệt diệt rong nhớt.",
+    tags: ["Cải tạo ao", "Gây màu nước", "Rong nhớt"],
+    conditions: ["cai-tao-ao", "mau-nuoc-kem", "rong-nhot"],
+    link: "#"
+  }
+];
+
+// conditions: tình trạng nước / ao
+const CONDITIONS = [
+  { id:"noi-dau", label:"Tôm/cá nổi đầu", desc:"Nổi đầu đột ngột, cần cấp cứu ngay" },
+  { id:"thieu-oxy", label:"Thiếu oxy hòa tan", desc:"Ao ngộp, oxy thấp về đêm hoặc sáng sớm" },
+  { id:"khi-doc", label:"Khí độc NH3 / NO2 / H2S", desc:"Đáy ao sinh khí độc, mùi hôi" },
+  { id:"ph-khong-on-dinh", label:"pH không ổn định", desc:"pH dao động mạnh trong ngày" },
+  { id:"mau-nuoc-kem", label:"Nước trong / mất màu tảo", desc:"Khó gây màu, thiếu thức ăn tự nhiên" },
+  { id:"rong-nhot", label:"Rong nhớt, rêu đáy", desc:"Rong rêu phát triển mạnh đáy ao, bạt" },
+  { id:"nhiem-phen", label:"Ao nhiễm phèn / kim loại nặng", desc:"Ao mới đào hoặc đáy bùn phèn" },
+  { id:"cai-tao-ao", label:"Cải tạo ao mới / đầu vụ", desc:"Chuẩn bị ao trước khi thả giống" },
+  { id:"day-ao-o-nhiem", label:"Đáy ao ô nhiễm hữu cơ", desc:"Tích tụ chất hữu cơ, bùn đen lâu ngày" },
+  { id:"thieu-khoang", label:"Thiếu khoáng chất", desc:"Tôm chậm lớn, thiếu ion vi lượng" },
+  { id:"mem-vo", label:"Tôm mềm vỏ / chậm cứng vỏ", desc:"Sau lột xác vỏ lâu cứng" },
+  { id:"cong-than-duc-co", label:"Cong thân, đục cơ", desc:"Thường gặp khi sốc nhiệt / thiếu khoáng" },
+  { id:"lot-xac", label:"Hỗ trợ tôm lột xác", desc:"Kích thích lột xác đồng loạt" },
+  { id:"soc-moi-truong", label:"Sốc môi trường / thời tiết", desc:"Mưa lớn, thay đổi nhiệt độ đột ngột" }
+];
+
+/* ============ RENDER: CONDITION GRID ============ */
+const condGrid = document.getElementById('cond-grid');
+let selectedCond = null;
+
+CONDITIONS.forEach(c=>{
+  const card = document.createElement('button');
+  card.className = 'cond-card';
+  card.type = 'button';
+  card.innerHTML = `<div class="label">${c.label}</div><div class="desc">${c.desc}</div>`;
+  card.addEventListener('click', ()=>selectCondition(c.id, card));
+  condGrid.appendChild(card);
+});
+
+function selectCondition(condId, cardEl){
+  document.querySelectorAll('#cond-grid .cond-card').forEach(el=>el.classList.remove('selected'));
+  cardEl.classList.add('selected');
+  selectedCond = condId;
+
+  const matches = PRODUCTS.filter(p=>p.conditions.includes(condId));
+  const condLabel = CONDITIONS.find(c=>c.id===condId).label;
+
+  document.getElementById('cond-empty').style.display='none';
+  const wrap = document.getElementById('cond-result-wrap');
+  wrap.style.display='block';
+  document.getElementById('cond-result-title').textContent = `Sản phẩm dùng cho: ${condLabel}`;
+
+  const list = document.getElementById('cond-result-list');
+  list.innerHTML='';
+  if(matches.length===0){
+    list.innerHTML = '<div class="result-empty">Chưa có sản phẩm phù hợp.</div>';
+    return;
+  }
+  matches.forEach(p=>{
+    list.appendChild(buildProductCard(p));
+  });
+}
+
+function buildProductCard(p){
+  const el = document.createElement('div');
+  el.className='prod-card';
+  el.innerHTML = `
+    <div class="thumb">${p.short}</div>
+    <div class="body">
+      <div class="name">${p.name}</div>
+      <div class="meta">${p.weight}</div>
+      <div class="use">${p.use}</div>
+      <div class="tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      <a class="link" href="${p.link}" target="_blank">Xem sản phẩm</a>
+    </div>
+  `;
+  return el;
+}
+
+/* ============ RENDER: PRODUCT SELECT ============ */
+const prodGrid = document.getElementById('prod-select-grid');
+
+PRODUCTS.forEach(p=>{
+  const card = document.createElement('button');
+  card.className='prod-select-card';
+  card.type='button';
+  card.innerHTML = `<span class="dot"></span><span class="txt"><div class="n">${p.name}</div><div class="p">${p.weight}</div></span>`;
+  card.addEventListener('click', ()=>selectProduct(p.id, card));
+  prodGrid.appendChild(card);
+});
+
+function selectProduct(prodId, cardEl){
+  document.querySelectorAll('#prod-select-grid .prod-select-card').forEach(el=>el.classList.remove('selected'));
+  cardEl.classList.add('selected');
+
+  const p = PRODUCTS.find(x=>x.id===prodId);
+  document.getElementById('prod-empty').style.display='none';
+  const wrap = document.getElementById('prod-result-wrap');
+  wrap.style.display='block';
+  document.getElementById('prod-result-title').textContent = `${p.name} — dùng khi ao gặp:`;
+
+  const list = document.getElementById('prod-result-list');
+  list.innerHTML='';
+  p.conditions.forEach(cid=>{
+    const c = CONDITIONS.find(x=>x.id===cid);
+    if(!c) return;
+    const item = document.createElement('div');
+    item.className='cond-result-item';
+    item.innerHTML = `<div class="t">${c.label}</div><div class="d">${c.desc}</div>`;
+    list.appendChild(item);
+  });
+
+  const link = document.getElementById('prod-result-link');
+  link.href = p.link;
+}
+
+/* ============ MODE SWITCH ============ */
+function setMode(mode){
+  const isCond = mode==='cond';
+  document.getElementById('panel-cond').classList.toggle('active', isCond);
+  document.getElementById('panel-prod').classList.toggle('active', !isCond);
+  document.getElementById('btn-mode-cond').classList.toggle('active', isCond);
+  document.getElementById('btn-mode-prod').classList.toggle('active', !isCond);
+}
+</script>
+
+</body>
+</html>
