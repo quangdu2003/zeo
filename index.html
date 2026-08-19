@@ -477,73 +477,90 @@ max-height:310px;
 }
 }
 
-/* ==================================================
-   MOBILE + IFRAME FIX
-   - Trên mobile: dropdown đi theo luồng trang, không bị tràn ra ngoài iframe
-   - Không khóa chiều cao nội dung
-================================================== */
+/* ==========================================================
+   FIX KHÔNG CẮT NỘI DUNG KHI NHÚNG IFRAME - DESKTOP + MOBILE
+========================================================== */
 html, body{
-  width:100%;
-  min-height:100%;
-  overflow-x:hidden;
+  width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow-x:hidden !important;
+  overflow-y:visible !important;
 }
 
-@media (max-width: 520px){
+body{
+  position:relative;
+}
+
+main,
+.hero,
+.switch-wrap,
+.panel,
+.condition-select-wrap,
+.prod-list,
+.prod-select-grid,
+.cond-result-list{
+  max-height:none !important;
+  overflow:visible !important;
+}
+
+/* Cho dropdown tham gia vào chiều cao thật của trang.
+   Cách này tránh trường hợp iframe tính thiếu chiều cao. */
+.condition-dropdown{
+  position:relative !important;
+  top:auto !important;
+  left:auto !important;
+  right:auto !important;
+  width:100% !important;
+  max-height:none !important;
+  height:auto !important;
+  overflow:visible !important;
+  margin-top:8px !important;
+  z-index:10;
+}
+
+/* Không để phần tử nào làm nội dung tràn ngang */
+img, svg, video, canvas{
+  max-width:100%;
+  height:auto;
+}
+
+@media (max-width: 768px){
   .hero{
-    padding:28px 16px 20px;
+    padding:26px 16px 20px !important;
   }
 
   .switch-wrap{
-    padding:0 16px;
+    padding:0 16px !important;
   }
 
   .switch{
-    width:100%;
-    max-width:none;
+    width:100% !important;
+    max-width:none !important;
   }
 
   .switch button{
-    min-width:0;
-    padding:12px 8px;
-    line-height:1.35;
+    min-width:0 !important;
+    padding:12px 8px !important;
+    line-height:1.35 !important;
   }
 
   main{
-    padding:22px 16px 56px;
-  }
-
-  .section-head{
-    align-items:flex-start;
+    padding:22px 16px 56px !important;
   }
 
   .condition-select-wrap{
-    width:100%;
-    max-width:none;
-    margin-bottom:24px;
-  }
-
-  .condition-select-button{
-    width:100%;
-  }
-
-  /* Quan trọng: cho danh sách nằm trong luồng trang trên mobile */
-  .condition-dropdown{
-    position:relative;
-    top:auto;
-    left:auto;
-    width:100%;
-    margin-top:8px;
-    max-height:none;
-    overflow:visible;
-    box-shadow:0 8px 22px rgba(18,32,58,.10);
+    width:100% !important;
+    max-width:none !important;
   }
 
   .prod-select-grid{
-    grid-template-columns:1fr;
+    grid-template-columns:1fr !important;
   }
 
   .prod-card{
-    flex-direction:column;
+    flex-direction:column !important;
   }
 }
 
@@ -1442,92 +1459,82 @@ selectButton.classList.remove("open");
 
 
 <script>
-/* ==================================================
-   AUTO HEIGHT FOR CROSS-DOMAIN IFRAME
-   Gửi chiều cao thật của trang cho trang cha bằng postMessage.
-================================================== */
-(function () {
-  const MESSAGE_TYPE = "THAI_HUNG_ZEO_IFRAME_HEIGHT";
-  let lastHeight = 0;
-  let rafId = 0;
+/* Gửi chiều cao thật sang trang cha.
+   Có nhiều lần gửi dự phòng vì một số website/CMS render chậm. */
+(function(){
+  const TYPE = "THAI_HUNG_ZEO_HEIGHT";
+  let timer = null;
+  let last = 0;
 
-  function getPageHeight() {
-    const body = document.body;
-    const html = document.documentElement;
+  function calcHeight(){
+    const d = document.documentElement;
+    const b = document.body;
 
-    let height = Math.max(
-      body ? body.scrollHeight : 0,
-      body ? body.offsetHeight : 0,
-      html ? html.scrollHeight : 0,
-      html ? html.offsetHeight : 0,
-      html ? html.clientHeight : 0
+    let h = Math.max(
+      d ? d.scrollHeight : 0,
+      d ? d.offsetHeight : 0,
+      d ? d.clientHeight : 0,
+      b ? b.scrollHeight : 0,
+      b ? b.offsetHeight : 0
     );
 
-    /* Nếu dropdown đang mở thì tính luôn phần đáy của dropdown */
-    document.querySelectorAll(".condition-dropdown.open").forEach(function (el) {
-      const rect = el.getBoundingClientRect();
-      height = Math.max(height, rect.bottom + window.scrollY + 24);
+    document.querySelectorAll("*").forEach(function(el){
+      const s = getComputedStyle(el);
+      if(s.display === "none" || s.position === "fixed") return;
+      const r = el.getBoundingClientRect();
+      h = Math.max(h, r.bottom + window.scrollY);
     });
 
-    return Math.ceil(height);
+    return Math.ceil(h + 20);
   }
 
-  function sendHeight() {
-    cancelAnimationFrame(rafId);
-    rafId = requestAnimationFrame(function () {
-      const height = getPageHeight();
-
-      if (height !== lastHeight) {
-        lastHeight = height;
-        window.parent.postMessage(
-          {
-            type: MESSAGE_TYPE,
-            height: height
-          },
-          "*"
-        );
+  function send(){
+    clearTimeout(timer);
+    timer = setTimeout(function(){
+      const h = calcHeight();
+      if(h !== last){
+        last = h;
       }
-    });
+      window.parent.postMessage({type:TYPE, height:h}, "*");
+    }, 20);
   }
 
-  window.addEventListener("load", function () {
-    sendHeight();
-    setTimeout(sendHeight, 100);
-    setTimeout(sendHeight, 400);
+  window.addEventListener("load", function(){
+    send();
+    setTimeout(send, 100);
+    setTimeout(send, 300);
+    setTimeout(send, 800);
+    setTimeout(send, 1500);
   });
 
-  window.addEventListener("resize", sendHeight);
-  window.addEventListener("orientationchange", function () {
-    setTimeout(sendHeight, 150);
-  });
+  window.addEventListener("resize", send);
+  window.addEventListener("orientationchange", function(){ setTimeout(send,200); });
+  document.addEventListener("click", function(){ setTimeout(send,50); setTimeout(send,250); }, true);
 
-  document.addEventListener("click", function () {
-    setTimeout(sendHeight, 0);
-    setTimeout(sendHeight, 180);
-  }, true);
-
-  if ("ResizeObserver" in window) {
-    const ro = new ResizeObserver(sendHeight);
+  if("ResizeObserver" in window){
+    const ro = new ResizeObserver(send);
     ro.observe(document.documentElement);
-    if (document.body) ro.observe(document.body);
+    if(document.body) ro.observe(document.body);
   }
 
-  if ("MutationObserver" in window && document.body) {
-    const mo = new MutationObserver(sendHeight);
-    mo.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      characterData: true
+  if("MutationObserver" in window && document.body){
+    const mo = new MutationObserver(send);
+    mo.observe(document.body,{
+      subtree:true,
+      childList:true,
+      attributes:true,
+      characterData:true
     });
   }
 
-  /* Trang cha có thể yêu cầu gửi lại chiều cao */
-  window.addEventListener("message", function (event) {
-    if (event.data && event.data.type === "THAI_HUNG_ZEO_REQUEST_HEIGHT") {
-      sendHeight();
+  window.addEventListener("message", function(e){
+    if(e.data && e.data.type === "THAI_HUNG_ZEO_GET_HEIGHT"){
+      send();
     }
   });
+
+  /* Dự phòng cho trang render font/ảnh chậm */
+  setInterval(send, 1200);
 })();
 </script>
 
